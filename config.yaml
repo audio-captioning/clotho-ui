@@ -1,0 +1,83 @@
+# ---------------------------------
+# Settings for publishing HITs.
+#
+# author: Samuel Lipping
+# affiliation: Tampere University
+# ---------------------------------
+# Current settings, i.e. what task and what batch to publish
+CURRENT:
+  task: "AUDIO_DESC" # One of: ["AUDIO_DESC", "CAPTION_EDIT", "CAPTION_SCORE"]
+  batch: 1
+  input_data_file: "./data/input_data.csv" # For HIT creation
+  output_data_file: "./data/ans_data.csv" # For fetching results
+
+USE_SANDBOX: Yes
+USE_REQ_WITH_SANDBOX: No # Easier to test in sandbox without qualifications
+REGION_NAME: 'us-east-1'
+
+# Global AMT qualification requirements
+REQUIREMENTS:
+  LOCATION: ['AU', 'CA', 'FI', 'IE', 'GB', 'NZ', 'US']
+  APPROVAL_RATE: 95
+  APPROVED_HITS: 3000
+
+# From https://uniqueturker.myleott.com/, used to limit # of accepted HITs per worker
+UNIQUE_IDS: ['UNIQUE_ID_FOR_BATCH_1_HERE',
+             'UNIQUE_ID_FOR_BATCH_2_HERE',
+             'UNIQUE_ID_FOR_BATCH_3_HERE',
+             'UNIQUE_ID_FOR_BATCH_4_HERE',
+             'UNIQUE_ID_FOR_BATCH_5_HERE',
+             'UNIQUE_ID_FOR_BATCH_6_HERE',
+             'UNIQUE_ID_FOR_BATCH_7_HERE',
+             'UNIQUE_ID_FOR_BATCH_8_HERE',
+             'UNIQUE_ID_FOR_BATCH_9_HERE',
+             'UNIQUE_ID_FOR_BATCH_10_HERE']
+
+# For each task, HIT layout IDs for production and sandbox, Title, Description, Keywords, Reward, MaxAssignments.
+# The batch number in the titles will be added in the script, not here.
+TASKS:
+  AUDIO_DESC:
+    PROD_LAYOUT_ID: 'YOUR_PRODUCTION_AUDIO_DESCRIPTION_HIT_LAYOUT_ID_HERE'
+    SBX_LAYOUT_ID: 'YOUR_SANDBOX_AUDIO_DESCRIPTION_HIT_LAYOUT_ID_HERE'
+    Reward: '0.11'
+    MaxAssignments: 5
+    Title: 'Write a description for a 15-30 second audio clip.'
+    Description: 'Write a description for a 15-30 second audio clip.
+     Workers will be limited to 100 HITs on this task.
+     The audio players do not work with Internet Explorer, do not accept this HIT
+     if you are using that browser or do this HIT with another browser.'
+    Keywords: 'describe,description,audio,write,writing'
+
+    collapse_instructions_token: 'YOUR_UNIQUE_ID_TOKEN_HERE' # Token used for collapsing instructions on repeated HITs
+
+  CAPTION_EDIT:
+    PROD_LAYOUT_ID: 'YOUR_PRODUCTION_CAPTION_EDITING_HIT_LAYOUT_ID_HERE'
+    SBX_LAYOUT_ID: 'YOUR_SANDBOX_CAPTION_EDITING_HIT_LAYOUT_ID_HERE'
+    Reward: '0.05'
+    MaxAssignments: 1
+    Title: 'Correct sentence for grammatical errors and fluency or rephrase it.'
+    Description: 'Correct sentence for grammatical errors and fluency or rephrase it.
+     Workers will be limited to 100 HITs on this task.'
+    Keywords: 'writing,grammar,spellcheck,fluency,fluent,correct'
+
+    collapse_instructions_token: 'YOUR_UNIQUE_ID_TOKEN_HERE' # Token used for collapsing instructions on repeated HITs
+
+  CAPTION_SCORE:
+    PROD_LAYOUT_ID: 'YOUR_PRODUCTION_CAPTION_SCORING_HIT_LAYOUT_ID_HERE'
+    SBX_LAYOUT_ID: 'YOUR_SANDBOX_CAPTION_SCORING_HIT_LAYOUT_ID_HERE'
+    Reward: '0.08'
+    MaxAssignments: 3
+    Title: 'Score descriptions of a 15-30 second audio clip according to accuracy and fluency.'
+    Description: 'Score descriptions of a 15-30 second audio clip according to how well they describe the
+      given audio track and how fluent in English they are.
+       Workers will be limited to 100 HITs on this task.
+       The audio players do not work with Internet Explorer, do not accept this HIT
+        if you are using that browser or do this HIT with another browser.'
+    Keywords: 'audio,score,scoring,listening'
+
+    REQUIREMENTS:
+      LOCATION: ['AU', 'CA', 'FI', 'IE', 'GB', 'NZ', 'US']
+      APPROVAL_RATE: 98
+      APPROVED_HITS: 3000
+
+# EOF

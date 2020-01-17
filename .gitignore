@@ -1,0 +1,4 @@
+*.pyc
+aws_keys.*
+custom_qualifications.yaml
+*.csv

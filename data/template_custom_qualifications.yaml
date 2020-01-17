@@ -1,0 +1,13 @@
+# ---------------------------------
+# Template for settings file with
+# Qualification IDs for worker blacklist
+# and batch participation qualifications.
+#
+# author: Samuel Lipping
+# affiliation: Tampere University
+# ---------------------------------
+
+BLACKLIST: ''
+BATCH: []
+
+# EOF

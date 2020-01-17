@@ -1,0 +1,10 @@
+# ---------------------------------
+# Template settings file for AWS API keys.
+#
+# author: Samuel Lipping
+# affiliation: Tampere University
+# ---------------------------------
+access_key_id: ""
+secret_access_key: ""
+
+# EOF

@@ -1,0 +1,311 @@
+<!-- HIT template: DataCollection-v3.0 --><!-- The following snippet enables the 'responsive' behavior on smaller screens -->
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<section class="container" id="DataCollection"><!-- Instructions -->
+    <div class="row">
+        <div class="col-xs-12 col-md-12">
+            <div class="panel panel-primary"><a class="panel-heading" id="collapseTrigger"><strong>Please read the
+                following instructions (<strong>EVEN IF YOU HAVE PARTICIPATED IN THESE HITS BEFORE</strong>)
+            </strong></a>
+                <div class="panel-body" id="instructionBody" style="background-color:#E6E6E6">
+                    <p>Please listen to the audio and score the following descriptions on the scale of 1 to 4 (<strong>the
+                        higher the better</strong>) based on <strong>accuracy</strong> (how well you think the
+                        descriptions describe the audio) and <strong>fluency</strong> (how fluent the language in the
+                        description is). <span
+                                style="background-color: rgb(230, 230, 230);">Do this task in a&nbsp;</span><u
+                                style="background-color: rgb(230, 230, 230);"><strong>quiet
+                            environment</strong></u><span
+                                style="background-color: rgb(230, 230, 230);">&nbsp;with&nbsp;</span><strong
+                                style="background-color: rgb(230, 230, 230);"><u>headphones</u></strong><span
+                                style="background-color: rgb(230, 230, 230);">. The length of the audio tracks range from <strong>15 to 30 seconds</strong>.</span>
+                    </p>
+
+                    <ol>
+                        <li>Score the <u><strong>descriptions</strong></u>&nbsp; (<strong>the higher the better</strong>)
+                            based on<strong> how well they describe the audio</strong> (first column)<strong>.</strong>
+                        </li>
+                        <li>Score the <u><strong>descriptions NOT THE AUDIO</strong></u>&nbsp;<span
+                                style="background-color: rgb(230, 230, 230);">(<strong>the higher the better</strong>)&nbsp;</span>based
+                            on <strong>their fluency in English/correctness of grammar</strong>(second
+                            column)<strong>.</strong></li>
+                    </ol>
+
+                    <p><b>Example:</b> If a description reads "The perso is swimmi g in rh3 b3ginning of this video",
+                        you would give this description a low fluency score.</p>
+                    <p><b>Example:</b> If a description reads "A person plays a xylophone with a wooden stick.", you
+                        would give this description a high fluency score.</p>
+                    <p><b>NB: Do not consider the audio when scoring fluency, only the textual descriptions should
+                        affect the fluency score!</b></p>
+
+                    <p><strong><span style="background-color: rgb(230, 230, 230);">The following will result in rejecting your submission:</span></strong>
+                    </p>
+
+                    <ol>
+                        <li><strong><span style="background-color: rgb(230, 230, 230);">Scoring the fluency of the audio instead of the description. <strong>DO NOT </strong>score the audio. <strong>If you score the audio instead of the description, your submission will be rejected</strong>. </span></strong><span
+                                style="background-color: rgb(230, 230, 230);">We are interested in how good the description describes the audio and how fluent the description is (and only the description). There will NOT be any speech or anything in the audio to score its fluency (even if there is, neglect it and <strong>DO NOT SCORE THE FLUENCY OF THE AUDIO</strong>). We do not care about the audio.</span>
+                        </li>
+                        <li><strong>Using the same score for all descriptions. Using the same score for the accuracy
+                            and/or fluency of all descriptions will result in rejecting your submission</strong>. For
+                            example, scoring the accuracy and/or the fluency of all descriptions as "1" or "4" or "3" or
+                            "2".
+                        </li>
+                        <li><strong>Using a pattern in scoring the submision. If you repeatedly use the same pattern of
+                            scores throughout your submissions (e.g. 1|2|3|4|1|2|3|4|1|2 in multiple different HITs), it
+                            will be seen as not doing the HIT properly and your submission will be rejected. This
+                            <em><u>will NOT include UNINTENTIONAL REPEATS</u></em>. There are a total of 1,048,576
+                            possible scoring combinations, <em><u>INTENTIONAL REPEATS WILL BE EVIDENT</u></em>.</strong>
+                        </li>
+                        <li><strong>Giving a description with obvious typos a 4 in fluency.</strong> For example: "A
+                            low, <strong>abient</strong> humming sound from something mechanical."; giving this kind of
+                            description a 4 in fluency <strong>will result in rejection</strong></li>
+                    </ol>
+
+                    <p><strong>Remember to adjust headphone volume so that the audio can be heard fully. <em><u>The
+                        audio will never be completely blank</u></em>. </strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End Instructions --><!-- Data Collection Layout -->
+
+    <h4><u><strong>VVV The task starts here! VVV</strong></u></h4>
+    <!--Hidden fields to capture inputs with results--><input name="audioUrl" style="display:none" value="${audioUrl}"/>
+    <input name="audioType" style="display:none" value="${audioType}"/> <input name="captions" style="display:none"
+                                                                               value="${captions}"/> <input
+            name="assignments" style="display:none" value="${assignments}"/>
+    <p><label for="TrackControls">Please listen to the following audio (You can listen to the audio multiple
+        times):</label></p>
+    <input id="accuracy_scores" name="accuracy_scores" style="display:none" type="text"/> <input id="fluency_scores"
+                                                                                                 name="fluency_scores"
+                                                                                                 style="display:none"
+                                                                                                 type="text"/>
+    <audio controls="" id="TrackControls" required="">
+        <source id="AudioSource" src="${audioUrl}" type="${audioType}"/>
+        Your browser does not support the <code>audio</code> element.
+    </audio>
+
+    <p>&nbsp;</p>
+    <label for="Translations">And score the following descriptions based on accuracy (note that some input will be
+        available only once audio has been listened to):</label>
+
+    <div class="row" id="workContent">
+        <div class="row justify-content-md-center">
+            <table class="table table-condensed table-bordered" id="Translations">
+            </table>
+        </div>
+    </div>
+
+    <hr style="border-color:#222222"/>
+    <label for="Feedback">Feedback (not obligatory):</label><textarea class="form-control" cols="250" id="Feedback"
+                                                                      name="Feedback"
+                                                                      placeholder="Please tell us if there is some way we could improve this HIT."
+                                                                      rows="2"></textarea></section>
+<!-- End Data Collection Layout --><!-- Please note that Bootstrap CSS/JS and JQuery are 3rd party libraries that may update their url/code at any time. Amazon Mechanical Turk (MTurk) is including these libraries as a default option for you, but is not responsible for any changes to the external libraries --><!-- External CSS references -->
+
+<p>&nbsp;</p>
+<link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css"
+      integrity="sha384-IS73LIqjtYesmURkDE9MXKbXqYA8rvKEp/ghicjem7Vc3mGRdQRptJSz60tvrB6+"
+      rel="stylesheet"/><!-- Open internal style sheet -->
+<style type="text/css">#collapseTrigger{
+  color:#fff;
+  display: block;
+  text-decoration: none;
+}
+#submitButton{
+  white-space: normal;
+  display: none;
+}
+.image{
+  margin-bottom: 15px;
+}
+
+</style>
+<!-- End internal style sheet --><!-- External JS references -->
+<script src="https://code.jquery.com/jquery-3.1.0.min.js"
+        integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"
+        integrity="sha384-s1ITto93iSMDxlp/79qhWHi+LsIi9Gx6yL+cOKDuymvihkfol83TYbLbOw+W/wv4"
+        crossorigin="anonymous"></script><!-- Open internal javascript -->
+<script>
+var audioControls = document.getElementById("TrackControls");
+var descTable = document.getElementById("Translations");
+var descriptions = "${captions}".split("|");
+
+var assignmentId = turkGetParam('assignmentId', '');
+var ans_visible = 0;
+$(document).ready(function() {
+    $("audio").attr("controlsList", "nodownload");
+    document.querySelector("#submitButton").setAttribute("style", "white-space: normal; display: inline;");
+    $("form").submit(function(event) {
+        var audio = document.getElementById("TrackControls");
+        var acc_el = document.getElementById("accuracy_scores");
+        var fl_el = document.getElementById("fluency_scores");
+
+        var acc = [];
+        var fl = [];
+        cnt = 1;
+        while (true) {
+            var acc_box = document.querySelector('input[name="accuracy_score' + cnt.toString() + '"]:checked');
+            var fl_box = document.querySelector('input[name="fluency_score' + cnt.toString() + '"]:checked');
+            cnt = cnt + 1;
+            if (acc_box && fl_box) {
+                acc.push(acc_box.value);
+                fl.push(fl_box.value);
+            } else {
+                break;
+            }
+        }
+
+        acc_counts = [];
+        fl_counts = [];
+        for (var i = 1; i < 5; i++) {
+            acc_counts.push(count(acc, i.toString()));
+            fl_counts.push(count(fl, i.toString()));
+        }
+
+        acc_el.setAttribute("value", acc.join("|"));
+        fl_el.setAttribute("value", fl.join("|"));
+
+        if (audio.played.length == 0) {
+            alert("Please listen to the audio before submitting.");
+            audio.focus();
+            event.preventDefault();
+        } else {
+            if (audio.played.end(0) - audio.played.start(0) != audio.duration && (audio.played.end(0) != audio.duration || audio.played.start(0) != 1)) {
+                alert("Please listen to the whole audio before submitting.");
+                audio.focus();
+                event.preventDefault();
+            } else if (Math.max(...acc_counts) == 10) {
+                alert("All of the accuracy scores are the same.");
+                event.preventDefault();
+            } else if (Math.max(...fl_counts) == 10) {
+                alert("All of the fluency scores are the same.");
+                event.preventDefault();
+            }
+        }
+    });
+});
+
+var count = function(arr, val) {
+    cnt = 0;
+    for (var i = 0; i < arr.length; i++) {
+        if (arr[i] == val) {
+            cnt++;
+        }
+    }
+    return cnt;
+}
+
+var create_table = function() {
+    var desc_width = 50;
+    var tbody = document.createElement("tbody");
+    var row = document.createElement("tr");
+    var labels = [" (bad)&nbsp&nbsp", "&nbsp&nbsp", "&nbsp&nbsp", " (very good)"];
+    row.insertAdjacentHTML('afterbegin', '<td width="' + desc_width.toString() + '%"><strong>Descriptions</strong></td><td width="' + ((100 - desc_width) / 2).toString() + '%"><strong>Description accuracy score</strong></td><td width="' + ((100 - desc_width) / 2).toString() + '%"><strong>Description English fluency score</strong></td>');
+    tbody.appendChild(row);
+    for (var i = 0; i < descriptions.length; i++) {
+        var row = document.createElement("tr");
+        if (i % 2 == 1) {
+            row.setAttribute("style", "background-color:#E6E6E6");
+        }
+        var td_desc = document.createElement("td");
+        var td_scores = document.createElement("td");
+        var td_acc_score = document.createElement("td");
+        var td_fluency_score = document.createElement("td");
+        var table_scores = document.createElement("table");
+
+        var desc = document.createTextNode(descriptions[i]);
+        td_desc.appendChild(desc);
+        row.appendChild(td_desc);
+
+        for (var j = 0; j < 4; j++) {
+            var div_acc_score = document.createElement("span");
+            var acc_score = document.createElement("input");
+            acc_score.setAttribute("name", "accuracy_score" + (i + 1).toString());
+            acc_score.setAttribute("id", "accuracy_score" + (i + 1).toString() + (j + 1).toString());
+            acc_score.setAttribute("value", (j + 1).toString());
+            acc_score.setAttribute("type", "radio");
+            acc_score.setAttribute("required", "");
+            acc_score.setAttribute("disabled", "");
+            acc_score.setAttribute("tabindex", "-1");
+            div_acc_score.appendChild(acc_score);
+
+            //td_rank.insertAdjacentHTML('afterbegin', `<input type="radio" name="score${i+1}" value="${j+1}" required=""`);
+
+            var label = document.createElement("label");
+            label.innerHTML = "<font size='2'>" + (j + 1).toString() + labels[j] + "</font>";
+            label.setAttribute("style", "margin:3px");
+            label.setAttribute("for", "accuracy_score" + (i + 1).toString() + (j + 1).toString());
+            div_acc_score.appendChild(label);
+            td_acc_score.appendChild(div_acc_score);
+            div_acc_score.onclick = function() {
+                //var score = this.querySelector("input");
+                //if (score.getAttribute("disabled")){
+                //	this.querySelector("input").checked = !score.checked;
+                //}
+            };
+        }
+        for (var j = 0; j < 4; j++) {
+            var div_fluency_score = document.createElement("span");
+            var fluency_score = document.createElement("input");
+            fluency_score.setAttribute("name", "fluency_score" + (i + 1).toString());
+            fluency_score.setAttribute("id", "fluency_score" + (i + 1).toString() + (j + 1).toString());
+            fluency_score.setAttribute("value", (j + 1).toString());
+            fluency_score.setAttribute("type", "radio");
+            fluency_score.setAttribute("required", "");
+            //fluency_score.setAttribute("disabled", "");
+            fluency_score.setAttribute("tabindex", "-1");
+            div_fluency_score.appendChild(fluency_score);
+
+            //td_rank.insertAdjacentHTML('afterbegin', `<input type="radio" name="score${i+1}" value="${j+1}" required=""`);
+
+            var label = document.createElement("label");
+            label.innerHTML = "<font size='2'>" + (j + 1).toString() + labels[j] + "</font>";
+            label.setAttribute("style", "margin:3px");
+            label.setAttribute("for", "fluency_score" + (i + 1).toString() + (j + 1).toString());
+            div_fluency_score.appendChild(label);
+            td_fluency_score.appendChild(div_fluency_score);
+            div_fluency_score.onclick = function() {
+                //var score = this.querySelector("input");
+                //if (score.getAttribute("disabled")){
+                //	this.querySelector("input").checked = !score.checked;
+                //}
+            };
+        }
+
+        row.appendChild(td_acc_score);
+        row.appendChild(td_fluency_score);
+        tbody.appendChild(row);
+    }
+    descTable.appendChild(tbody);
+}
+create_table();
+audioControls.onpause = function() {
+    if ((this.played.end(0) - this.played.start(0) == this.duration || (this.played.end(0) == this.duration && this.played.start(0) == 1)) && ans_visible == 0) {
+        var radios = document.querySelectorAll("input[type='radio']");
+        for (var i = 0; i < radios.length; i++) {
+            radios[i].removeAttribute("disabled");
+            radios[i].setAttribute("required", "");
+        }
+        ans_visible = 1;
+    }
+}
+
+/*if (assignmentId == "ASSIGNMENT_ID_NOT_AVAILABLE"){
+  document.getElementsByTagName('body')[0].innerHTML = "Please check the following list for your WorkerId:\n\nIf you find your own Id, this means this HIT will contain one of your own submissions. If this is the case, please skip this HIT and move to the next one.";}
+
+if (workers.find(function(i){return i==worker;})){document.getElementById('mturk_form').style.display = 'none';
+        document.getElementsByTagName('body')[0].innerHTML = "This HIT contains one of your own submissions. Please skip this HIT by pressing 'Return'.";}*/
+</script>
+<script src="//uniqueturker.myleott.com/lib.js" type="text/javascript"></script>
+<script type="text/javascript">
+(function(){
+    var ut_id = "${unique_id}";
+if (ut_id){
+    if (UTWorkerLimitReached(ut_id)) {
+        document.getElementById('mturk_form').style.display = 'none';
+        document.getElementsByTagName('body')[0].innerHTML = "You have already completed 100 of these HITs. Please click 'Return HIT' to avoid any impact on your approval rating.";
+    }
+}
+})();
+
+</script><!-- Close internal javascript -->
