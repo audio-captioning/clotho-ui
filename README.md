@@ -28,6 +28,12 @@ is scored three times.
 
 The scores can then be used to sort the captions to choose the best captions as the final annotations.
 
+In order to ensure that a worker does not end up seeing their own submissions from earlier tasks (e.g. scoring their
+own description from the audio description task), the audio files and HITs should be divided into 10 batches.
+Each worker will then be allowed to participate in one task per batch. This can be accomplished using custom AMT
+qualifications. Once a batch of a given task is finished, the bath qualification should then be granted to the workers
+who participated in the task in that batch.
+
 ----
 
 ## Requirements
@@ -109,6 +115,12 @@ AMT Sandbox is used by default.
 
 8) To get submission data from AMT based on the `CURRENT` field data, run `get_results.py`. 
 The data will be written in the file listed in `CURRENT.output_data_file`.
+
+Once you have received the results for a task in a given batch, the workers who participated in that task
+should be granted the appropriate qualification. E.g. once all the results have been gathered for the
+batch 5 audio description task, the workers who participated in the batch 5 audio description task should
+be granted the batch 5 qualification. The batch 5 qualification ID is the fifth ID in the list in the field
+`BATCH` in the file `custom_qualifications.yaml`.
 
 HIT data such as rewards can be changed in the config file. 
 If you want to use task-specific requirements, you can copy the `REQUIREMENTS` field into the 
