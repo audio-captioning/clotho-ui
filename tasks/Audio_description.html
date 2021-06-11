@@ -1,7 +1,7 @@
 <!-- HIT template: TranscribeAudioVideo-v3.0 --><!-- The following snippet enables the 'responsive' behavior on smaller screens -->
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
 <section class="container" id="TranscriptionFromAV"><!-- Instructions -->
-    <div class="row">
+    <div id="content" class="row">
         <div class="col-xs-12 col-md-12">
             <div class="panel panel-primary">
                 <!-- WARNING: the ids "collapseTrigger" and "instructionBody" are being used to enable expand/collapse feature --><a
@@ -59,9 +59,11 @@
                                     heard"</strong> etc. (e.g. instead of "Birdsong <strong>can be heard </strong>in the
                                     background..." say "<strong>A bird is singing</strong> in the background...").
                                 </li>
-                                <li>Do not transcribe what people are saying (e.g. instead of "A man
+                                <li>Do not refer to the <strong>contents of speech</strong> (e.g. instead of "A man
                                     <strong>shouts</strong> <strong>"This is the best day of my life!"</strong>
-                                    while..." say "A man <strong>is shouting</strong> while...")
+                                    while..." say "A man <strong>is shouting</strong> while..." and instead of
+                                    "A woman is <strong>speaking a foreign language</strong> and..." say
+                                    "A woman is <strong>speaking</strong> and...")
                                 </li>
                                 <li>Avoid giving proper names to people, places, or scenery (e.g. "People are walking
                                     and talking in the downtown of <strong>Tokyo</strong>". <strong>Do not do
@@ -99,11 +101,13 @@
 
                                 <p><label for="AudioExample1">Please listen to the following audio:</label></p>
 
-                                <audio controls="" id="AudioExample1" preload="auto">
-                                    <source src="YOUR_EXAMPLE_1_FILE_HERE"
+                                <!-- <audio controls="" id="AudioExample1" preload="none">
+                                    <source src="https://dl.dropbox.com/s/mvugyeakw9rh3ih/Coughing.wav"
                                             type="audio/wav"/>
                                     Your browser does not support the <code>audio</code> element.
-                                </audio>
+                                </audio> -->
+
+                                <div class="audioContainer" src="YOUR_EXAMPLE_1_FILE_HERE" audioId="AudioExample1"></div>
 
                                 <p>&nbsp;</p>
                                 <label for="DescriptionExample1">Please describe the audio here (input is disabled for
@@ -116,11 +120,13 @@
 
                                 <p><label for="AudioExample2">Please listen to the following audio:</label></p>
 
-                                <audio controls="" id="AudioExample2" preload="auto">
-                                    <source src="YOUR_EXAMPLE_2_FILE_HERE"
+                                <!-- <audio controls="" id="AudioExample2" preload="none">
+                                    <source src="https://dl.dropbox.com/s/dcrgkudl1frlbu6/GolfTeeOff2.wav"
                                             type="audio/wav"/>
                                     Your browser does not support the <code>audio</code> element.
-                                </audio>
+                                </audio> -->
+
+                                <div class="audioContainer" src="YOUR_EXAMPLE_2_FILE_HERE" audioId="AudioExample2"></div>
 
                                 <p>&nbsp;</p>
                                 <label for="DescriptionExample2">Please describe the audio here (input is disabled for
@@ -146,10 +152,12 @@
 
                 <p><!-- Worker input --></p>
 
-                <audio controls="" id="TrackControls" preload="auto">
-                    <source id="AudioSource" src="${audioUrl}" type="${audioType}"/>
-                    Your browser does not support the <code>audio</code> element.
-                </audio>
+<!--                <audio controls="" id="TrackControls" preload="none">-->
+<!--                    <source id="AudioSource" src="https://dl.dropbox.com/s/ugb2evlsz4e2gfe/Audio_2_329.wav" type="audio/wav"/>-->
+<!--                    Your browser does not support the <code>audio</code> element.-->
+<!--                </audio>-->
+
+                <div id="theAudioContainer" class="audioContainer" src="${audioUrl}" audioId="TrackControls"></div>
 
                 <p>&nbsp;</p>
 
@@ -226,12 +234,58 @@ function getWordCount(sentence){
     return count;
 }
 
+$(".audioContainer").each(function() {
+    btnHTML = '<button class="audioButton">Click here to enable audio.</button>'
+    this.innerHTML = btnHTML;
+});
+
 $(document).ready(function() {
     $("audio").attr("controlsList", "nodownload");
-    document.querySelector("#submitButton").setAttribute("style", "white-space: normal; display: inline;");
+    submitBtn = document.getElementById("submitButton");
+    
+    if (submitBtn){
+        submitBtn.setAttribute("style", "white-space: normal; display: inline;");
+    }
+
+    $(".audioButton").click(function() {
+        $(".audioContainer").each(function(){
+            var src = this.getAttribute("src");
+            audioId = this.getAttribute("audioId");
+
+            if (audioId == "TrackControls"){
+                preload = 'auto';
+            } else {
+                preload = 'metadata';
+            }
+
+            inner = '<audio id="' + audioId + '" class="audio" controls="" preload="' + preload +'" >';
+            inner = inner + '<source src="' + src + '" type="audio/wav" />';
+            inner = inner + 'Your browser does not support the <code>audio</code> element.';
+            inner = inner + '</audio>';
+
+            this.innerHTML = inner;
+        });
+
+        $('.audio').each(function(){
+            this.onpause = function() {
+                if ((this.played.end(0) - this.played.start(0) == this.duration || (this.played.end(0) == this.duration && this.played.start(0) == 1)) && ans_visible == 0) {
+                    document.getElementById("DescriptionText").removeAttribute("readonly");
+                    ans_visible = 1;
+                }
+            };
+        });
+     });
+
+
     $("form").submit(function(event) {
         var audio = document.getElementById("TrackControls");
         var ans = document.getElementById("DescriptionText");
+
+        if (!audio) {
+            alert("Please listen to the audio before submitting.");
+            document.getElementById("theAudioContainer").focus();
+            event.preventDefault();
+        }
 
         var word_count = getWordCount(ans.value);
 
@@ -294,13 +348,6 @@ $(document).ready(function() {
         }
     });
 });
-
-document.getElementById("TrackControls").onpause = function() {
-    if ((this.played.end(0) - this.played.start(0) == this.duration || (this.played.end(0) == this.duration && this.played.start(0) == 1)) && ans_visible == 0) {
-        document.getElementById("DescriptionText").removeAttribute("readonly");
-        ans_visible = 1;
-    }
-};
 </script>
 <script type="text/javascript">
 (function(){

@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import csv
+from pathlib import Path
 from typing import MutableMapping, List, Union, NewType, Any, Tuple, Dict
 
 import xmltodict
 import botocore
 
-from tools import *
+from tools import get_client, get_req_annotation_for_batch, read_yaml, replace_non_ascii
 
 __author__ = 'Samuel Lipping -- Tampere University'
 __docformat__ = 'reStructuredText'
@@ -24,31 +25,43 @@ ResultDict = NewType('ResultDict', MutableMapping[str, List[str]])
 
 
 def test_hit(hit: DataDict,
-             params: DataDict) \
+             params: MutableMapping[str, List[Any]]) \
         -> bool:
     """ Test HIT (or assignment) for given parameters
-    E.g. test_hit(hit, {'HITId': '123'}) returns True, if the HITId of the HIT is '123'.
-    test_hit(assignment, {"AssignmentStatus": "Approved"} returns True,
-    if the assignment status of assignment is Approved.
+    E.g. test_hit(hit, {'HITId': ['123']}) returns True, if the HITId of the HIT is '123'.
+    test_hit(assignment, {"AssignmentStatus": ["Approved", "Submitted"]} returns True,
+    if the assignment status of assignment is Approved or Submitted.
+    test_hit(hit, {"RequesterAnnotation": ["+AUDIO_DESC", "+CAPTION_EDIT"]} returns True,
+    if the RequesterAnnotation of the HIT starts with either "AUDIO_DESC" or "CAPTION_EDIT".
 
     :param hit: HIT (or other dict) to test
     :type hit: dict[str, any]
-    :param params: Parameters to test with
-    :type params: dict[str, any]
+    :param params: Parameters to test with. Parameters
+    :type params: dict[str, list[any]]
     :return: True if parameters hold true, False if not
     :rtype: bool
     """
+
+    def test_one(p, h):
+        if p == '':
+            return p == h
+        else:
+            if p[0] == '+':
+                if h.startswith(p[1:]):
+                    return True
+            elif p[0] == '-':
+                if h.endswith(p[1:]):
+                    return True
+            else:
+                return p == h
+
     for i in params:
         if i not in hit:
             return False
         pars = params[i]
-        for p in pars:
-            if not p:
-                continue
-            if p[0] == '+':
-                if hit[i].startswith(p[1:]):
-                    return True
-        if hit[i] not in params[i]:
+        if any(test_one(p, hit[i]) for p in pars):
+            continue
+        else:
             return False
 
     return True
@@ -173,6 +186,9 @@ def write_ans_data_file(data: ResultDict,
     elif select == 'score':
         select = ['HITId', 'Title', 'AssignmentId', 'WorkerId', 'assignments', 'audioUrl', 'captions',
                   'accuracy_scores', 'fluency_scores', 'Feedback']
+
+    Path(ofile).parent.mkdir(exist_ok=True, parents=True)
+
     with open(ofile, 'w', newline='\n') as f:
         writer = csv.writer(f, delimiter=',')
         titles = [i for i in select if i not in ignore and i in data]
@@ -185,7 +201,7 @@ def write_ans_data_file(data: ResultDict,
                     row[j] = u''
                 else:
                     try:
-                        row[j] = str(row[j])
+                        row[j] = str(row[j]).encode('ASCII').decode()
                     except:
                         # Replace non-ASCII characters with ASCII characters, e.g. á -> a.
                         row[j] = replace_non_ascii(row[j])
@@ -220,31 +236,34 @@ def get_all_hits(client: MTurkClient,
     processed = 0
     done = 0
     if print_info:
-        print('Gathering HITs...')
+        print('Gathering HITs... Ctrl+C to interrupt')
 
     q = client.list_hits(MaxResults=100)
-    while q['NumResults'] > 0:
-        nt = q['NextToken']
-        for hit in q['HITs']:
-            if 0 < max_hits <= processed:
-                done = 1
-                break
-
-            if print_info and processed % 100 == 0:
-                print('\rGathered: %s\t\tProcessed: %s' % (gathered, processed), end='')
-            processed += 1
-            if not test_hit(hit, hit_search_params):
-                if gathered != 0 and stop_after_first:
+    try:
+        while q['NumResults'] > 0:
+            nt = q['NextToken']
+            for hit in q['HITs']:
+                if 0 < max_hits <= processed:
                     done = 1
                     break
-                continue
 
-            results.append(hit)
-            gathered += 1
+                if print_info and processed % 100 == 0:
+                    print(f'\rGathered: {gathered}\t\tProcessed: {processed}', end='', flush=True)
+                processed += 1
+                if not test_hit(hit, hit_search_params):
+                    if gathered != 0 and stop_after_first:
+                        done = 1
+                        break
+                    continue
 
-        if done:
-            break
-        q = client.list_hits(NextToken=nt, MaxResults=100)
+                results.append(hit)
+                gathered += 1
+
+            if done:
+                break
+            q = client.list_hits(NextToken=nt, MaxResults=100)
+    except KeyboardInterrupt:
+        print(f'Interrupted by user! Got {gathered} HITs.')
 
     if print_info:
         print('\rGathered: %s\t\tProcessed: %s' % (gathered, processed))
@@ -316,20 +335,22 @@ def get_all_assignments(client: MTurkClient,
         stop_after_first=stop_after_first_hit
     )
     if print_info:
-        print('Gathering assignments...')
+        print('Gathering assignments... Ctrl+C to interrupt.')
         cnt = 0
         size = len(hits)
-    for hit in hits:
-        if print_info and cnt % 10 == 0:
-            # printProgressBar(cnt, size)
-            print('\rGathered assignments from %s/%s HITs' % (cnt, size), end='')
+    try:
+        for hit in hits:
+            if print_info and cnt % 10 == 0:
+                print(f'\rGathered assignments from {cnt}/{size} HITs', end='', flush=True)
 
-        hit_data[hit['HITId']] = hit
-        assignments = get_hit_assignments(client, hit['HITId'])
-        for assignment in assignments:
-            if test_hit(assignment, assignment_search_params):
-                results.append(assignment)
-        cnt += 1
+            hit_data[hit['HITId']] = hit
+            assignments = get_hit_assignments(client, hit['HITId'])
+            for assignment in assignments:
+                if test_hit(assignment, assignment_search_params):
+                    results.append(assignment)
+            cnt += 1
+    except KeyboardInterrupt:
+        print(f'Interrupted by user! Got assignments for {cnt}/{size} HITs')
 
     return results, hit_data
 
@@ -338,15 +359,17 @@ def main():
     config = read_yaml('config.yaml')
     aws_keys = read_yaml('aws_keys.yaml')
 
-    req_annotation = get_req_annotation_for_batch(config)
+    req_annotations = get_req_annotation_for_batch(config, True)
+
     batch_params = {
-        'RequesterAnnotation': req_annotation
+        'RequesterAnnotation': req_annotations
     }
 
     client = get_client(aws_keys, config)
+    out_file = config['CURRENT']['output_data_file']
 
     get_answer_data(
-        client, config['CURRENT']['output_data_file'],
+        client, out_file,
         hit_search_params=batch_params
     )
 

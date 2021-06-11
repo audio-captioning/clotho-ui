@@ -78,10 +78,12 @@
                                                                                                  name="fluency_scores"
                                                                                                  style="display:none"
                                                                                                  type="text"/>
-    <audio controls="" id="TrackControls" required="">
+  <!--   <audio controls="" id="TrackControls" preload="auto">
         <source id="AudioSource" src="${audioUrl}" type="${audioType}"/>
         Your browser does not support the <code>audio</code> element.
-    </audio>
+    </audio> -->
+
+    <div id="theAudioContainer" class="audioContainer" src="${audioUrl}" audioId="TrackControls"></div>
 
     <p>&nbsp;</p>
     <label for="Translations">And score the following descriptions based on accuracy (note that some input will be
@@ -126,19 +128,67 @@
         integrity="sha384-s1ITto93iSMDxlp/79qhWHi+LsIi9Gx6yL+cOKDuymvihkfol83TYbLbOw+W/wv4"
         crossorigin="anonymous"></script><!-- Open internal javascript -->
 <script>
-var audioControls = document.getElementById("TrackControls");
 var descTable = document.getElementById("Translations");
 var descriptions = "${captions}".split("|");
+
+$(".audioContainer").each(function() {
+    btnHTML = '<button class="audioButton">Click here to enable audio.</button>'
+    this.innerHTML = btnHTML;
+});
 
 var assignmentId = turkGetParam('assignmentId', '');
 var ans_visible = 0;
 $(document).ready(function() {
     $("audio").attr("controlsList", "nodownload");
-    document.querySelector("#submitButton").setAttribute("style", "white-space: normal; display: inline;");
+    submitBtn = document.getElementById("submitButton")
+    
+    if (submitBtn){
+        submitBtn.setAttribute("style", "white-space: normal; display: inline;");
+    }
+
+    $(".audioButton").click(function() {
+            $(".audioContainer").each(function(){
+                var src = this.getAttribute("src");
+                audioId = this.getAttribute("audioId");
+
+                if (audioId == "TrackControls"){
+                    preload = 'auto';
+                } else {
+                    preload = 'metadata';
+                }
+
+                inner = '<audio id="' + audioId + '" class="audio" controls="" preload="' + preload +'" >';
+                inner = inner + '<source src="' + src + '" type="audio/wav" />';
+                inner = inner + 'Your browser does not support the <code>audio</code> element.';
+                inner = inner + '</audio>';
+
+                this.innerHTML = inner;
+            });
+
+            $('.audio').each(function(){
+                this.onpause = function() {
+                    if ((this.played.end(0) - this.played.start(0) == this.duration || (this.played.end(0) == this.duration && this.played.start(0) == 1)) && ans_visible == 0) {
+                        var radios = document.querySelectorAll("input[type='radio']");
+                        for (var i = 0; i < radios.length; i++) {
+                            radios[i].removeAttribute("disabled");
+                            radios[i].setAttribute("required", "");
+                        }
+                        ans_visible = 1;
+                    }
+                };
+            });
+        });
+
     $("form").submit(function(event) {
         var audio = document.getElementById("TrackControls");
         var acc_el = document.getElementById("accuracy_scores");
         var fl_el = document.getElementById("fluency_scores");
+
+        if (!audio){
+            alert("Please listen to the audio before submitting.");
+            document.getElementById("theAudioContainer").focus();
+            event.preventDefault();
+        }
 
         var acc = [];
         var fl = [];
@@ -279,16 +329,6 @@ var create_table = function() {
     descTable.appendChild(tbody);
 }
 create_table();
-audioControls.onpause = function() {
-    if ((this.played.end(0) - this.played.start(0) == this.duration || (this.played.end(0) == this.duration && this.played.start(0) == 1)) && ans_visible == 0) {
-        var radios = document.querySelectorAll("input[type='radio']");
-        for (var i = 0; i < radios.length; i++) {
-            radios[i].removeAttribute("disabled");
-            radios[i].setAttribute("required", "");
-        }
-        ans_visible = 1;
-    }
-}
 
 /*if (assignmentId == "ASSIGNMENT_ID_NOT_AVAILABLE"){
   document.getElementsByTagName('body')[0].innerHTML = "Please check the following list for your WorkerId:\n\nIf you find your own Id, this means this HIT will contain one of your own submissions. If this is the case, please skip this HIT and move to the next one.";}

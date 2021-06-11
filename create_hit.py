@@ -3,6 +3,8 @@
 
 import csv
 import os
+import re
+from pathlib import Path
 from typing import MutableMapping, Dict, List, NewType, Any, Union
 
 import botocore
@@ -45,13 +47,14 @@ class Task:
         self.reward = task_config['Reward']
         self.max_assigns = task_config['MaxAssignments']
         self.ut_id = config['UNIQUE_IDS'][
-            config['CURRENT']['batch']
+            config['CURRENT']['batch'] - 1
         ]
 
 
 def layout_params_from_file(ifile: str,
                             delim: str = ',',
-                            constants: MutableMapping[str, str] = {}) \
+                            constants: MutableMapping[str, str] = {},
+                            ignore: set = set()) \
         -> List[Dict[str, str]]:
     """ Create generator for layout parameters read from csv file
 
@@ -61,6 +64,8 @@ def layout_params_from_file(ifile: str,
     :type delim: str
     :param constants: Constant layout parameters to add.
     :type constants: dict[str, str]
+    :param ignore: Fields to ignore
+    :type ignore: set[str]
     :return: Layout parameters, format for one HIT (row):
     {
         'Name': <layout_param_name>,
@@ -79,13 +84,19 @@ def layout_params_from_file(ifile: str,
         for row in reader:
             values = row
             layout_params = []
-            for i in constants:
-                layout_params.append({'Name': i, 'Value': constants[i]})
+            param_dict = {}
+            for k, v in constants.items():
+                param_dict[k] = v
 
             for i, value in enumerate(values):
-                layout_params.append({'Name': titles[i], 'Value': value})
+                field_name = titles[i]
+                if field_name != 'file_name' and field_name not in ignore:
+                    param_dict[field_name] = value
 
-            yield layout_params
+            for k, v in param_dict.items():
+                layout_params.append({'Name': k, 'Value': v})
+
+            yield layout_params, param_dict
 
 
 def list_all_qualification_types(client: MTurkClient) \
@@ -138,7 +149,7 @@ def create_custom_qualifications(client: MTurkClient) \
     q_names = [qt['Name'] for qt in q_types]
 
     for rnd in range(1, 11):
-        name = f'Participated in experiment Batch {rnd}'
+        name = f'Participated in annotation Batch {rnd}'
         desc = 'Workers with this qualification have already participated in ' \
                'this batch and will not be able to ' \
                'participate in this batch anymore.'
@@ -147,7 +158,7 @@ def create_custom_qualifications(client: MTurkClient) \
             resp = client.create_qualification_type(
                 Name=name,
                 Description=desc,
-                Keywords='audio,Tampere University of Technology',
+                Keywords='audio,Tampere University of Technology,listening',
                 QualificationTypeStatus='Active',
                 AutoGranted=True,
                 AutoGrantedValue=1,
@@ -249,22 +260,114 @@ def list_qualifications_for_hit(config: MutableMapping[str, Any],
     return qualifications
 
 
+def input_layout_params_into_html(html: str,
+                                  layout_params: List[Dict[str, str]],
+                                  verbose: bool = False) \
+        -> str:
+    """ Replaces layout parameter placeholders in html with values.
+
+    Placeholders are of the form ${variable_name}. If unexpected
+    parameters are given or an expected parameter is not given,
+    a message will be printed to the console, but no exception
+    will be raised, since the layout still works with placeholders
+    in place of actual values.
+
+    :param verbose: Determines if the function should print out information
+    :type verbose: bool
+    :param html: The HTML in which to replace placeholders
+    :type html: str
+    :param layout_params: Layout parameters to place in placeholders
+    :type layout_params: list[dict[str,str]]
+    :return: The HTML with the placeholders replaces
+    :rtype: str
+    """
+    # See if all the expected parameters are given in layout_params
+    expected_params = set(
+        [the_param[2:-1] for the_param in re.findall(r"\${[a-zA-Z_1-9]+\}", html)]
+    )
+    given_params = set([the_param['Name'] for the_param in layout_params])
+    for param in expected_params:
+        if param not in given_params:
+            # if verbose:
+            print(f'Expected layout parameter {param} not given.')
+
+    # Replace the placeholders
+    new_html = html
+    for param in layout_params:
+        to_replace = '${' + param['Name'] + '}'
+        if to_replace not in new_html:
+            if verbose:
+                print(f'Unexpected layout parameter: {param["Name"]}.')
+
+        new_html = new_html.replace(
+            '${' + param["Name"] + '}',
+            param['Value']
+        )
+
+    return new_html
+
+
+def wrap_layout_into_question(html: str,
+                              mturk_form_action: str,
+                              config: Dict[str, Union[str, int]]) \
+        -> str:
+    """ Wrap an HTML layout into an HTMLQuestion
+
+    :param config: Layout settings, including template file paths and frame height
+    :type config: dict[str, str | int]
+    :param mturk_form_action: What URL to use for the form action on mturk.
+                            Depends on whether or not sandbox is in use.
+    :type mturk_form_action: str
+    :param html: HTML to wrap
+    :type html: str
+    :return: The wrapped HTML
+    :rtype: str
+    """
+    html_template = open(config['HTML_wrapper'], 'r').read()
+    xml_template = open(config['question_wrapper'], 'r').read()
+
+    html_content = html_template.format(
+        mturk_form_action=mturk_form_action,
+        hit_layout=html
+    )
+    xml = xml_template.format(
+        html_content=html_content,
+        frame_height=str(config['frame_height'])
+    )
+
+    return xml
+
+
 def main():
     config = read_yaml('config.yaml')
     aws_keys = read_yaml('aws_keys.yaml')
 
-    req_annotation = get_req_annotation_for_batch(config)
+    req_annotation = get_req_annotation_for_batch(config)[0]
 
     client = get_client(aws_keys, config)
 
     task = Task(config)
+
+    if not config['USE_SANDBOX']:
+        cont = input('You are about to publish production HITs (not sandbox). Continue?')
+        if cont.startswith('n'):
+            return
+    else:
+        print(f'Publishing sandbox HITs from {config["CURRENT"]["input_data_file"]}')
+
+    if config['USE_SANDBOX']:
+        mturk_form_action = 'https://workersandbox.mturk.com/mturk/externalSubmit'
+    else:
+        mturk_form_action = 'https://www.mturk.com/mturk/externalSubmit'
 
     if not config['USE_SANDBOX'] or config['USE_REQ_WITH_SANDBOX']:
         inc_flag = 0
         if os.path.exists('custom_qualifications.yaml'):
             custom_qualifications = read_yaml('custom_qualifications.yaml')
 
-            if any([i not in custom_qualifications for i in ['BLACKLIST', 'BATCH']]):
+            if custom_qualifications is None:
+                inc_flag = 1
+            elif any([i not in custom_qualifications for i in ['BLACKLIST', 'BATCH']]):
                 inc_flag = 1
             elif len(custom_qualifications['BLACKLIST']) < 1:
                 inc_flag = 1
@@ -288,19 +391,27 @@ def main():
     if task.collapse_token is not None:
         constants['collapse_token'] = task.collapse_token
 
-    for layout_params in tqdm(
+    layout_file = Path(
+        config['TASKS'][config['CURRENT']['task']]['LAYOUT_FILE']
+    )
+    with layout_file.open('r') as f:
+        layout_html = f.read()
+
+    for layout_params, param_dict in tqdm(
             layout_params_from_file(
                 config['CURRENT']['input_data_file'],
                 constants=constants
             ),
             total=N
     ):
-        # audioType is the same for all, so it can be added automatically if not in the file.
+
         contains_type = 0
         try:
             for i, params in enumerate(layout_params):
+                # audioType is the same for all, so it can be added automatically if not in the file.
                 if params['Name'] == 'audioType':
                     contains_type = 1
+                # Replace non-ASCII
                 elif params['Name'] in ['DescriptionText', 'EditedCaption', 'captions']:
                     layout_params[i] = {
                         'Name': params['Name'],
@@ -312,19 +423,44 @@ def main():
         if contains_type == 0:
             layout_params.append({'Name': 'audioType', 'Value': 'audio/wav'})
 
-        resp = client.create_hit(
-            LifetimeInSeconds=14 * 24 * 3600,
-            AssignmentDurationInSeconds=20 * 60,
-            MaxAssignments=task.max_assigns,
-            Reward=task.reward,
-            Title=task.title,
-            Description=task.desc,
-            Keywords=task.keywords,
-            HITLayoutId=task.layout,
-            HITLayoutParameters=layout_params,
-            QualificationRequirements=qualifications,
-            RequesterAnnotation=req_annotation
+        for i in layout_params:
+            if i['Name'] in ['file_name', 'audioUrl']:
+                assert i['Value'].endswith('.wav')
+
+        question_html = input_layout_params_into_html(
+            layout_html,
+            layout_params
         )
+        question = wrap_layout_into_question(
+            question_html,
+            mturk_form_action,
+            config['LAYOUT']
+        )
+
+        hit_kwargs = {
+            'LifetimeInSeconds': 14 * 24 * 3600,
+            'AssignmentDurationInSeconds': 20 * 60,
+            'Reward': task.reward,
+            'Title': task.title,
+            'Description': task.desc,
+            'Keywords': task.keywords,
+            'Question': question,
+            'QualificationRequirements': qualifications,
+            'RequesterAnnotation': req_annotation
+        }
+
+        if 'MaxAssignments' in param_dict:
+            hit_kwargs['MaxAssignments'] = int(param_dict['MaxAssignments'])
+        elif 'SubmissionsReceived' in param_dict:
+            ma = task.max_assigns - int(param_dict['SubmissionsReceived'])
+            if ma < 0:
+                print(f'Error with HIT parameters: Cannot publish less than 0 assignments!')
+                ma = 0
+            hit_kwargs['MaxAssignments'] = ma
+        else:
+            hit_kwargs['MaxAssignments'] = task.max_assigns
+
+        resp = client.create_hit(**hit_kwargs)
 
     print(
         f'Published {N} HITs with:'

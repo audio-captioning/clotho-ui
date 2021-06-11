@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from typing import MutableMapping, NewType, Any, Dict
+import csv
+from pathlib import Path
+from typing import MutableMapping, NewType, Any, Dict, List, Union, Iterable
 
 import yaml
 import boto3
@@ -13,10 +15,12 @@ __all__ = ['get_client',
            'read_yaml',
            'write_yaml',
            'get_req_annotation_for_batch',
-           'replace_non_ascii']
+           'replace_non_ascii',
+           'write_csv']
 
 # For easier type hinting
 MTurkClient = NewType('MTurkClient', botocore.client.BaseClient)
+CsvData = NewType('CsvData', Iterable[Dict[str, Any]])
 
 
 def get_client(keys: MutableMapping[str, str],
@@ -59,7 +63,7 @@ def read_yaml(ifile: str) \
     :return: Yaml file contents
     :rtype: dict
     """
-    return yaml.load(open(str(ifile)))
+    return yaml.safe_load(open(str(ifile)))
 
 
 def write_yaml(data: MutableMapping[str, Any],
@@ -75,19 +79,34 @@ def write_yaml(data: MutableMapping[str, Any],
     yaml.dump(data, open(file, "w"))
 
 
-def get_req_annotation_for_batch(config: MutableMapping[str, Any]) \
-        -> str:
-    """ Get the requester annotation for the current batch for the current task
+def get_req_annotation_for_batch(config: MutableMapping[str, Any],
+                                 add_sw: bool = False) \
+        -> List[str]:
+    """ Get the requester annotation based on config
 
     Format:
         <task_name> Batch <batch_number>
 
     :param config: Script settings
     :type config: dict
+    :param add_sw: Add '+' to the beginning (acts as a startswith)
+    :type add_sw: bool
     :return: Requester annotation
     :rtype: str
     """
-    return f'{config["CURRENT"]["task"]} Batch {config["CURRENT"]["batch"]}'
+    options = []
+    for task_name in config['CURRENT']['task'].split(','):
+        task_name = task_name.strip()
+        for batch_num in str(config['CURRENT']['batch']).split(','):
+            batch_num = int(batch_num.strip())
+
+            if not add_sw:
+                options.append(f'{task_name} Batch {batch_num}')
+            else:
+                options.append(f'+{task_name} Batch {batch_num}')
+                options.append(f'++{task_name} Batch {batch_num}')  # Past mistakes
+
+    return options
 
 
 def replace_non_ascii(string: str) \
@@ -108,5 +127,32 @@ def replace_non_ascii(string: str) \
                .replace(u'\u201d', "'")
                .replace(u'\xe0', 'a')
                .replace(u'\xe2', "'"))
+
+
+def read_csv(path: Union[Path, str], encoding=None) -> CsvData:
+    path = str(path)
+    result = []
+    if encoding is None:
+        with open(path, 'r') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                result.append(row)
+    else:
+        with open(path, 'r', encoding=encoding) as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                result.append(row)
+
+    return result
+
+
+def write_csv(path: Union[Path, str], data: CsvData, mkdir=True):
+    path = Path(str(path))
+    if mkdir:
+        path.parent.mkdir(exist_ok=True, parents=True)
+    with path.open('w', newline='') as f:
+        writer = csv.DictWriter(f, data[0].keys())
+        writer.writeheader()
+        writer.writerows(data)
 
 # EOF

@@ -67,26 +67,20 @@ requester page of AMT.
 
 ## Getting started
 
-1) On your AMT requester account, [create projects](https://requester.mturk.com/create/projects) for each task.
- The HTML of each task can be copied from `tasks` to the Design Layout tab when creating the projects.
- When copying the audio description HIT HTML, put your own example audio links into the instructions in place of
- the placeholders `YOUR_EXAMPLE_1_FILE_HERE` and `YOUR_EXAMPLE_2_FILE_HERE`.
- This needs to be done for [sandbox](https://requestersandbox.mturk.com/) (testing) and production separately.
+1) In the HTML file `tasks/Audio_description.html`, replace the placeholders
+ `YOUR_EXAMPLE_1_FILE_HERE` and `YOUR_EXAMPLE_2_FILE_HERE` with your example audio files.
+ Also replace the respective example descriptions to match.
 
-2) In the AMT [project view](https://requester.mturk.com/create/projects), click on each of the project names and 
-from the popup window, copy the Layout ID to the `config.yaml` file in the field 
-`TASKS.(task name).PROD_LAYOUT_ID or .SBX_LAYOUT_ID`.
-
-3) Go to [https://uniqueturker.myleott.com/](https://uniqueturker.myleott.com/) and create 10 unique identifiers 
+2) Go to [https://uniqueturker.myleott.com/](https://uniqueturker.myleott.com/) and create 10 unique identifiers 
 (one for each batch) for 100 HITs/worker and copy them to the `config.yaml` file in the field `UNIQUE_IDS`.
 
-4) On the same page ([https://uniqueturker.myleott.com/](https://uniqueturker.myleott.com/)) create two
+3) On the same page ([https://uniqueturker.myleott.com/](https://uniqueturker.myleott.com/)) create two
 identifiers for 1 HIT/worker and copy them to the `config.yaml` file in the fields
 `TASKS.AUDIO_DESC.collapse_instructions_token` and `TASKS.CAPTION_EDIT.collapse_instructions_token`.
 These will be used to collapse the instructions if a worker has already participated in the HITs before
 to avoid inconvenient scrolling.
 
-5) Copy your access ID and secret key into an `aws_keys.yaml` file under the fields 
+4) Copy your access ID and secret key into an `aws_keys.yaml` file under the fields 
 `access_key_id` and `secret_access_key`. 
 If you do not have these yet, create them by following the steps in 
 [https://requester.mturk.com/developer](https://requester.mturk.com/developer).
@@ -96,7 +90,7 @@ If you do not have these yet, create them by following the steps in
 this file also has to be created containing the Qualfication Type IDs for
 the batch qualifications and the blacklist qualification.)
 
-6) Create an input csv file and write the file name into `config.yaml` `CURRENT.input_data_file`. 
+7) Create an input csv file and write the file name into `config.yaml` `CURRENT.input_data_file`. 
 In the file, one column represents an input parameter and each row one HIT. 
 Input (and output) parameters are listed below. 
 Unique IDs for batches and collapsing instructions will be added in the

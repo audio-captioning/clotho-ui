@@ -11,6 +11,12 @@ CURRENT:
   input_data_file: "./data/input_data.csv" # For HIT creation
   output_data_file: "./data/ans_data.csv" # For fetching results
 
+LAYOUT:
+  HTML_wrapper: './tasks/HTML_form_wrapper.html'
+  question_wrapper: './tasks/HTMLQuestion_wrapper.xml'
+
+  frame_height: 0
+
 USE_SANDBOX: Yes
 USE_REQ_WITH_SANDBOX: No # Easier to test in sandbox without qualifications
 REGION_NAME: 'us-east-1'
@@ -37,8 +43,7 @@ UNIQUE_IDS: ['UNIQUE_ID_FOR_BATCH_1_HERE',
 # The batch number in the titles will be added in the script, not here.
 TASKS:
   AUDIO_DESC:
-    PROD_LAYOUT_ID: 'YOUR_PRODUCTION_AUDIO_DESCRIPTION_HIT_LAYOUT_ID_HERE'
-    SBX_LAYOUT_ID: 'YOUR_SANDBOX_AUDIO_DESCRIPTION_HIT_LAYOUT_ID_HERE'
+    LAYOUT_FILE: './tasks/Audio_description.html'
     Reward: '0.11'
     MaxAssignments: 5
     Title: 'Write a description for a 15-30 second audio clip.'
@@ -48,24 +53,22 @@ TASKS:
      if you are using that browser or do this HIT with another browser.'
     Keywords: 'describe,description,audio,write,writing'
 
-    collapse_instructions_token: 'YOUR_UNIQUE_ID_TOKEN_HERE' # Token used for collapsing instructions on repeated HITs
+    collapse_instructions_token: 'YOUR_COLLAPSE_TOKEN_HERE' # Token used for collapsing instructions on repeated HITs
 
   CAPTION_EDIT:
-    PROD_LAYOUT_ID: 'YOUR_PRODUCTION_CAPTION_EDITING_HIT_LAYOUT_ID_HERE'
-    SBX_LAYOUT_ID: 'YOUR_SANDBOX_CAPTION_EDITING_HIT_LAYOUT_ID_HERE'
-    Reward: '0.05'
+    LAYOUT_FILE: './tasks/Edit_caption.html'
+    Reward: '0.08'
     MaxAssignments: 1
     Title: 'Correct sentence for grammatical errors and fluency or rephrase it.'
     Description: 'Correct sentence for grammatical errors and fluency or rephrase it.
      Workers will be limited to 100 HITs on this task.'
     Keywords: 'writing,grammar,spellcheck,fluency,fluent,correct'
 
-    collapse_instructions_token: 'YOUR_UNIQUE_ID_TOKEN_HERE' # Token used for collapsing instructions on repeated HITs
+    collapse_instructions_token: 'YOUR_COLLAPSE_TOKEN_HERE' # Token used for collapsing instructions on repeated HITs
 
   CAPTION_SCORE:
-    PROD_LAYOUT_ID: 'YOUR_PRODUCTION_CAPTION_SCORING_HIT_LAYOUT_ID_HERE'
-    SBX_LAYOUT_ID: 'YOUR_SANDBOX_CAPTION_SCORING_HIT_LAYOUT_ID_HERE'
-    Reward: '0.08'
+    LAYOUT_FILE: './tasks/Score_captions.html'
+    Reward: '0.15'
     MaxAssignments: 3
     Title: 'Score descriptions of a 15-30 second audio clip according to accuracy and fluency.'
     Description: 'Score descriptions of a 15-30 second audio clip according to how well they describe the
