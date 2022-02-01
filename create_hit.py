@@ -43,7 +43,6 @@ class Task:
 
         self.desc = task_config['Description']
         self.keywords = task_config['Keywords']
-        self.layout = task_config['SBX_LAYOUT_ID'] if config['USE_SANDBOX'] else task_config['PROD_LAYOUT_ID']
         self.reward = task_config['Reward']
         self.max_assigns = task_config['MaxAssignments']
         self.ut_id = config['UNIQUE_IDS'][
@@ -207,7 +206,7 @@ def list_qualifications_for_hit(config: MutableMapping[str, Any],
     if 'REQUIREMENTS' in task_config:
         approval_rating, approved_hits, locations = \
             tuple(
-                [task_config['REQUIREMENTS'][q_name] for q_name in {'APPROVAL_RATE', 'APPROVED_HITS', 'LOCATION'}]
+                [task_config['REQUIREMENTS'][q_name] for q_name in ['APPROVAL_RATE', 'APPROVED_HITS', 'LOCATION']]
             )
     else:
         approval_rating, approved_hits, locations = \
