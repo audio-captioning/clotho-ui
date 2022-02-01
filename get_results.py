@@ -366,10 +366,22 @@ def main():
     }
 
     client = get_client(aws_keys, config)
-    out_file = config['CURRENT']['output_data_file']
+    out_file = Path(config['CURRENT']['output_data_file'])
+
+    if out_file.exists():
+        print(f'Output file {out_file} already exists. ', end='')
+
+        i = 1
+        add_i = lambda path: path.with_name(path.stem + f'({i}){path.suffix}')
+        print(f'Using out path {add_i(out_file)} instead')
+        while add_i(out_file).exists():
+            print(f'Output file {add_i(out_file)} already exists. ', end='')
+            i += 1
+            print(f'Using out path {add_i(out_file)} instead')
+        out_file = add_i(out_file)
 
     get_answer_data(
-        client, out_file,
+        client, str(out_file),
         hit_search_params=batch_params
     )
 
